@@ -22,23 +22,26 @@ class RepositorySearchViewController: UITableViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         // Do any additional setup after loading the view.
-        repositorySearchBar.placeholder = "GitHubのリポジトリを検索できるよー"
+        repositorySearchBar.placeholder = "GitHubのリポジトリを検索できます"
         repositorySearchBar.delegate = self
     }
     
+//テキストフィールド入力時
     func searchBarShouldBeginEditing(_ searchBar: UISearchBar) -> Bool {
         searchBar.text = ""
         return true
     }
     
+//  キャンセルボタン時の動作
     func searchBar(_ searchBar: UISearchBar, textDidChange searchText: String) {
         task?.cancel()
     }
     
+//  画面遷移
     override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
         if segue.identifier == "Detail" {
-            let detail = segue.destination as! SearchResultsViewController
-            detail.searchViewController = self
+            let detail = segue.destination as? SearchResultsViewController
+            detail?.searchViewController = self
         }
     }
     

@@ -59,7 +59,6 @@
                     </connections>
                 </tableViewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="xer-fe-JeW" userLabel="First Responder" customClass="UIResponder" sceneMemberID="firstResponder"/>
-                <customObject id="OKc-DP-WjS" customClass="FirstPresentor"/>
             </objects>
             <point key="canvasLocation" x="-498" y="137"/>
         </scene>
