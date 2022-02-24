@@ -1,5 +1,5 @@
 //
-//  ViewController.swift
+//  RepositorySearchViewController.swift
 //  iOSEngineerCodeCheck
 //
 //  Created by 史 翔新 on 2020/04/20.
@@ -24,19 +24,20 @@ class RepositorySearchViewController: UITableViewController, UISearchBarDelegate
         // Do any additional setup after loading the view.
         repositorySearchBar.placeholder = "GitHubのリポジトリを検索できるよー"
         repositorySearchBar.delegate = self
-        
-        
     }
     
+    //編集の可否を定義
     func searchBarShouldBeginEditing(_ searchBar: UISearchBar) -> Bool {
         // ↓こうすれば初期のテキストを消せる
         searchBar.text = ""
         return true
     }
     
+    //テキストが変更されるたびに呼び出される。
     func searchBar(_ searchBar: UISearchBar, textDidChange searchText: String) {
         task?.cancel()
     }
+    
     
     func searchBarSearchButtonClicked(_ searchBar: UISearchBar) {
         
@@ -44,29 +45,45 @@ class RepositorySearchViewController: UITableViewController, UISearchBarDelegate
         
         if word.count != 0 {
             url = "https://api.github.com/search/repositories?q=\(word!)"
-            task = URLSession.shared.dataTask(with: URL(string: url)!) { (data, res, err) in
-                if let object = try! JSONSerialization.jsonObject(with: data!) as? [String: Any] {
-                    if let items = object["items"] as? [[String: Any]] {
-                        self.repository = items
-                        DispatchQueue.main.async {
-                            self.tableView.reloadData()
-                        }
+            guard let theUrl = URL(string: url) else {
+                print("bad URL string")
+                return
+            }
+            task = URLSession.shared.dataTask(with: theUrl) { (data, res, err) in
+                do {
+                    if let error = err {
+                        throw error
                     }
+                    guard let jsonData = data else {
+                        print("data is nil")
+                        throw error.dataNil
+                    }
+                    guard let obj = try JSONSerialization.jsonObject(with: jsonData) as? [String: Any] else {
+                        print("JSON Serialization failed")
+                        throw error.badData
+                    }
+                    guard let items = obj["items"] as? [[String: Any]] else {
+                        print("items is not much type")
+                        throw error.badData
+                    }
+                    self.repository = items
+                    DispatchQueue.main.async {
+                        self.tableView.reloadData()
+                    }
+                } catch {
+                    print(error)
                 }
             }
-            // これ呼ばなきゃリストが更新されません
+            // タスクを実行
             task?.resume()
         }
-        
     }
     
     override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
-        
-        if segue.identifier == "Detail"{
+        if segue.identifier == "Detail" {
             let detail = segue.destination as! SearchResultsViewController
-            detail.vc1 = self
+            detail.repositorySearchViewController = self
         }
-        
     }
     
     override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
@@ -74,21 +91,19 @@ class RepositorySearchViewController: UITableViewController, UISearchBarDelegate
     }
     
     override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-        
         let cell = UITableViewCell()
         let repository = repository[indexPath.row]
         cell.textLabel?.text = repository["full_name"] as? String ?? ""
         cell.detailTextLabel?.text = repository["language"] as? String ?? ""
         cell.tag = indexPath.row
-        return cell
         
+        return cell
     }
     
     override func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         // 画面遷移時に呼ばれる
         index = indexPath.row
-        performSegue(withIdentifier: "Detail", sender: self)
-        
+        performSegue(withIdentifier: "Detail", sender: self) 
     }
     
 }
